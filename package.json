@@ -9,6 +9,13 @@
   },
   "author": "CoderLLLL",
   "license": "MIT",
+  "keywords": [
+    "state managment",
+    "mini-program",
+    "vue",
+    "react",
+    "ts"
+  ],
   "devDependencies": {
     "@babel/core": "^7.17.2",
     "@babel/preset-env": "^7.16.11",
