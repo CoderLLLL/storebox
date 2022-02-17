@@ -21,6 +21,14 @@ export default function aa(){
         console.log(_address);  
     }
 
+    function fn3(payload:any){
+        console.log('fn3:',payload);  
+    }
+
+    function fn4(payload:any){
+        console.log('fn4:',payload);  
+    }
+
     Mystore.onState(['age','address'],fn2)
     Mystore.setState('name','CoderLLL')
     Mystore.setState('age',20)
@@ -30,4 +38,11 @@ export default function aa(){
     Mystore.setState('address','广州市')
     
     Mystore.dispatch('add',123456,789)
+    Mystore.dispatch('ddd','LLL')
+
+    Mystore.onState('obj',fn3)
+    Mystore.dispatch('change')
+
+    Mystore.onState('obj2',fn4)
+    Mystore.dispatch('change2','aaa')
 }

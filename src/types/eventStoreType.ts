@@ -4,7 +4,7 @@ export interface IStoreOptions<T extends IkeyType> {
 }
 
 export interface actionsTree<T> {
-    [propName:string]: (state:T,payload?:any) => void
+    [propName:string]: actionFn<T>
 }
 
 export interface IkeyType {

@@ -14,16 +14,55 @@ class HREventStore<T extends IkeyType> {
 
     private _observe(state:T['state']){
         const _this = this
-        const obj = {...state}
-        return new Proxy(obj,{
+        const obj = JSON.parse(JSON.stringify(state))
+        let proxyObj = new Proxy(obj,{
             get:(target,key)=>{                
                 return target[key as string]
             },
-            set:(target,key,newValue)=>{                                
-                if(target[key as string] === newValue) return false                
-                target[key as keyof T['state']] = newValue                
-                // _this.event.emit(key as string,target[key as keyof T['state']])                
+            set:(target,key,newValue)=>{            
+                if(target[key as string] === newValue) return true                
+                target[key as keyof T['state']] = newValue                               
                 _this.event.emit<T['state']>(key as string,target)
+                return true
+            }
+        })
+
+        proxyObj = this._deAgent(proxyObj)
+
+        return proxyObj
+    }
+
+    private _deAgent(proxyObj:IResultObj){  
+        const proxyKey = Object.keys(proxyObj)
+        if(proxyKey.length === 0) throw new Error('传入的代理对象为空')
+        let rootKey = ''
+        this._NextAgent(proxyObj,rootKey)
+
+        return proxyObj
+    }
+
+    private _NextAgent(proxyObj:IResultObj,rootKey:string){
+        const proxyKey = Object.keys(proxyObj)
+        if(proxyKey.length === 0) return
+        for(const item of proxyKey){
+            if(typeof proxyObj[item] === 'object'){
+                rootKey = item
+                proxyObj[item] = this._proxy(proxyObj[item],rootKey)
+                this._NextAgent(proxyObj[item],rootKey)
+            }
+        }
+    }
+
+    private _proxy(proxyObj:IResultObj,rootKey:string){
+        const _this = this
+        return new Proxy(proxyObj,{
+            get:(target,key)=>{                
+                return target[key as string]
+            },
+            set:(target,key,newValue)=>{                 
+                if(target[key as string] === newValue) return true                
+                target[key as string] = newValue                             
+                _this.event.emit<T['state']>(rootKey as string,target)
                 return true
             }
         })
