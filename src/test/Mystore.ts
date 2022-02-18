@@ -1,4 +1,5 @@
 import HREventStore from '../event/eventStore'
+import Mystore2 from './Mystore2'
 
 import {IStoreOptions} from '../types/index'
 import {IMyStore} from './types/storeType'
@@ -40,6 +41,9 @@ const store:IStoreOptions<IMyStore> = {
         change2(state,payload){
             state.obj2.aaa = payload?.length ? payload[0] : 'root'
         }
+    },
+    modules:{
+        Mystore2
     }
 }
 

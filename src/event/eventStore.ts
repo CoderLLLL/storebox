@@ -5,11 +5,26 @@ class HREventStore<T extends IkeyType> {
     public state
     public actions
     private event
+    public modules
 
     constructor(optinos:IStoreOptions<T>){
         this.actions = optinos.actions
         this.event = new HREventBus()
         this.state = this._observe(optinos.state)
+        if(Object.keys(optinos.modules ?? []).length === 0) return
+        this.modules = optinos.modules
+
+        for(const item of Object.keys(this.state)){
+            if(item === 'modules') throw new Error('你已经在store中使用了modules,state的key:modules被占用')
+        }        
+        // this.modules = this._deepAgent(this.modules)
+        if(!this.modules) return
+        for(const module of Object.keys(this.modules)){
+            this.modules[module] = new HREventStore(this.modules[module])
+        }
+        this.state.modules = this.modules
+        console.log(this);
+        
     }
 
     private _observe(state:T['state']){
@@ -27,28 +42,28 @@ class HREventStore<T extends IkeyType> {
             }
         })
 
-        proxyObj = this._deAgent(proxyObj)
+        proxyObj = this._deepAgent(proxyObj)
 
         return proxyObj
     }
 
-    private _deAgent(proxyObj:IResultObj){  
+    private _deepAgent(proxyObj:IResultObj){  
         const proxyKey = Object.keys(proxyObj)
-        if(proxyKey.length === 0) throw new Error('传入的代理对象为空')
+        if(proxyKey.length === 0) throw new Error('传入需要代理的对象为空')
         let rootKey = ''
-        this._NextAgent(proxyObj,rootKey)
+        this._nextAgent(proxyObj,rootKey)
 
         return proxyObj
     }
 
-    private _NextAgent(proxyObj:IResultObj,rootKey:string){
+    private _nextAgent(proxyObj:IResultObj,rootKey:string){
         const proxyKey = Object.keys(proxyObj)
         if(proxyKey.length === 0) return
         for(const item of proxyKey){
             if(typeof proxyObj[item] === 'object'){
                 rootKey = item
                 proxyObj[item] = this._proxy(proxyObj[item],rootKey)
-                this._NextAgent(proxyObj[item],rootKey)
+                this._nextAgent(proxyObj[item],rootKey)
             }
         }
     }
@@ -62,15 +77,23 @@ class HREventStore<T extends IkeyType> {
             set:(target,key,newValue)=>{                 
                 if(target[key as string] === newValue) return true                
                 target[key as string] = newValue                             
-                _this.event.emit<T['state']>(rootKey as string,target)
+                _this.event.emit<T['state']>(rootKey as string,target,true)
                 return true
             }
         })
     }
 
-    public onState(stateKey:keyof T['state'] | string[],stateCallBack:IEventFn){                    
+    public onState(stateKey:keyof T['state'] | 'modules' | string[],stateCallBack:IEventFn){                    
         if(typeof stateKey === 'string' && stateKey !== ''){
-            if(Object.keys(this.state).indexOf(stateKey as string) === -1) throw new Error('输入的key不在state中')
+            if(stateKey === 'modules' && this.state?.modules){
+                const res:IResultObj = {}
+                for(const itemKey of Object.keys(this.state.modules)){
+                    res[itemKey] = this.state.modules[itemKey]
+                    this.modules![itemKey].event.on(itemKey,stateCallBack)                
+                }
+                stateCallBack.apply(this.state,[res])
+            } else if(Object.keys(this.state).indexOf(stateKey as string) === -1) throw new Error('输入的key不在state中')
+
             this.event.on(stateKey as string,stateCallBack)
             const value = this.state[stateKey as keyof T['state']]        
             stateCallBack.apply(this.state,[value])  

@@ -1,3 +1,5 @@
+import { IMyStore2 } from "./storeType2";
+
 export interface IMyStore {
     state:{
         name:string,
@@ -14,6 +16,9 @@ export interface IMyStore {
         obj2:{
             aaa:string
         }
+    },
+    modules:{
+        [key:string]:IMyStore2
     }
 }
 

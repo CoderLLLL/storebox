@@ -29,6 +29,15 @@ export default function aa(){
         console.log('fn4:',payload);  
     }
 
+    function fn5(payload:any){
+        console.log('fn5:');
+        payload.Mystore2.onState('data',(state:any)=>{
+            console.log('onState123',state.a);
+            
+        })
+        payload.Mystore2?.dispatch('getState')  
+    }
+
     Mystore.onState(['age','address'],fn2)
     Mystore.setState('name','CoderLLL')
     Mystore.setState('age',20)
@@ -45,4 +54,6 @@ export default function aa(){
 
     Mystore.onState('obj2',fn4)
     Mystore.dispatch('change2','aaa')
+
+    Mystore.onState('modules',fn5)
 }

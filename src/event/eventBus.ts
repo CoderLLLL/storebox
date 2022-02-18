@@ -50,7 +50,7 @@ export default class HREventBus {
             for(const item of bucket.keys){
                 resArr[0][item] = target[item as keyof T]
             }
-        } else{
+        } else{                        
             resArr = [target]
         }     
         for(const item of bucket.handles){
