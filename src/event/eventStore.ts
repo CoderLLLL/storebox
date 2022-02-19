@@ -27,28 +27,28 @@ class HREventStore<T extends IkeyType> {
             }
         })
 
-        proxyObj = this._deAgent(proxyObj)
+        proxyObj = this._deepAgent(proxyObj)
 
         return proxyObj
     }
 
-    private _deAgent(proxyObj:IResultObj){  
+    private _deepAgent(proxyObj:IResultObj){  
         const proxyKey = Object.keys(proxyObj)
         if(proxyKey.length === 0) throw new Error('传入的代理对象为空')
         let rootKey = ''
-        this._NextAgent(proxyObj,rootKey)
+        this._nextAgent(proxyObj,rootKey)
 
         return proxyObj
     }
 
-    private _NextAgent(proxyObj:IResultObj,rootKey:string){
+    private _nextAgent(proxyObj:IResultObj,rootKey:string){
         const proxyKey = Object.keys(proxyObj)
         if(proxyKey.length === 0) return
         for(const item of proxyKey){
             if(typeof proxyObj[item] === 'object'){
                 rootKey = item
                 proxyObj[item] = this._proxy(proxyObj[item],rootKey)
-                this._NextAgent(proxyObj[item],rootKey)
+                this._nextAgent(proxyObj[item],rootKey)
             }
         }
     }
