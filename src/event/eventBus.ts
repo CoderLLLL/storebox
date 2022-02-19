@@ -44,15 +44,16 @@ export default class HREventBus {
         if(!bucket) return false
         
         resArr.push(target[eventName as keyof T])        
-        if(bucket.keys.length !== 0 && isdeep){
+        if(bucket.keys.length !== 0 && !isdeep){
             resArr = []
             resArr.push({[eventName]:target[eventName as keyof T]})
             for(const item of bucket.keys){
                 resArr[0][item] = target[item as keyof T]
             }
-        } else{                        
+        } else if(bucket.keys.length === 0 && isdeep){                                 
             resArr = [target]
         }     
+
         for(const item of bucket.handles){
             item?.eventCallback.apply(item.thisArgs,resArr)
         }

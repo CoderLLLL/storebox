@@ -31,8 +31,8 @@ export default function aa(){
 
     function fn5(payload:any){
         console.log('fn5:');
-        payload.Mystore2.onState('data',(state:any)=>{
-            console.log('onState123',state.a);
+        payload.Mystore2.onState('type',(state:any)=>{
+            console.log('onState123',state);
             
         })
         payload.Mystore2?.dispatch('getState')  

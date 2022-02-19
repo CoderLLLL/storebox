@@ -84,19 +84,20 @@ class HREventStore<T extends IkeyType> {
     }
 
     public onState(stateKey:keyof T['state'] | 'modules' | string[],stateCallBack:IEventFn){                    
-        if(typeof stateKey === 'string' && stateKey !== ''){
-            if(stateKey === 'modules' && this.state?.modules){
+        if(typeof stateKey === 'string' && stateKey !== ''){            
+            if(stateKey === 'modules' && this.state.modules){
                 const res:IResultObj = {}
                 for(const itemKey of Object.keys(this.state.modules)){
                     res[itemKey] = this.state.modules[itemKey]
                     this.modules![itemKey].event.on(itemKey,stateCallBack)                
                 }
                 stateCallBack.apply(this.state,[res])
-            } else if(Object.keys(this.state).indexOf(stateKey as string) === -1) throw new Error('输入的key不在state中')
 
-            this.event.on(stateKey as string,stateCallBack)
-            const value = this.state[stateKey as keyof T['state']]        
-            stateCallBack.apply(this.state,[value])  
+            } else if(Object.keys(this.state).indexOf(stateKey as string) === -1) throw new Error('输入的key不在state中')
+            this.event.on(stateKey as string,stateCallBack)            
+            const value = this.state[stateKey as keyof T['state']]                    
+            stateCallBack.apply(this.state,[value]) 
+             
         } else if(typeof stateKey === 'object' && stateKey.length > 0){
             const theKey = Object.keys(this.state)
             const res:IResultObj = {}
