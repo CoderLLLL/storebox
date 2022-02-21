@@ -1,4 +1,4 @@
-import HREventStore from '../index';
+import HREventStore from '../src/index';
 
 export interface IStoreOptions<T extends IkeyType> {
     state:T['state']

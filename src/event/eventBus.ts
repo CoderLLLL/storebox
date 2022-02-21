@@ -1,4 +1,4 @@
-import {IEventObj,IEventFn} from '../types/index'
+import {IEventObj,IEventFn} from '../../types/index'
 import deRepeat from '../utils/deRepeat';
 
 export default class HREventBus {
@@ -58,23 +58,32 @@ export default class HREventBus {
     */
 
     public emit<T>(eventName:string,target:T,isdeep:boolean = false){            
-        let resArr:any[] = []            
+        let resArr:any = {}           
         const bucket = this.eventBus[eventName]
         if(!bucket) return false
         
-        resArr.push(target[eventName as keyof T])        
-        if(bucket.keys.length !== 0 && !isdeep){
-            resArr = []
-            resArr.push({[eventName]:target[eventName as keyof T]})
+        
+        if(bucket.keys.length !== 0 && !isdeep){ 
+            resArr[eventName] = target[eventName as keyof T]
             for(const item of bucket.keys){
-                resArr[0][item] = target[item as keyof T]
+                resArr[item] = target[item as keyof T]
             }
-        } else if(bucket.keys.length === 0 && isdeep){                                 
-            resArr = [target]
-        }     
-
+        } else if(bucket.keys.length === 0 && isdeep){   
+            // resArr = [target]            
+            // resArr = target
+            resArr = {[eventName]:target}
+        } else if(bucket.keys.length === 0 && !isdeep){
+            const type = typeof target[eventName as keyof T]
+            if(type === 'object'){
+                resArr[eventName] = target
+            } else if(type === 'string'){
+                resArr = {[eventName]:target[eventName as keyof T]}
+            }
+        }
+        
+        
         for(const item of bucket.handles){
-            item?.eventCallback.apply(item.thisArgs,resArr)
+            item?.eventCallback.apply(item.thisArgs,[resArr])
         }
     }
 

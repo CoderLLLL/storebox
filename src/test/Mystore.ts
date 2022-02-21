@@ -1,7 +1,7 @@
 import HREventStore from '../event/eventStore'
 import Mystore2 from './Mystore2'
 
-import {IStoreOptions} from '../types/index'
+import {IStoreOptions} from '../../types/index'
 import {IMyStore} from './types/storeType'
 
 const store:IStoreOptions<IMyStore> = {
@@ -26,8 +26,8 @@ const store:IStoreOptions<IMyStore> = {
             console.log(state);
             console.log(payload);
             console.log('-------');
-            state.age = 18
-            state.address = '深圳市'
+            state.age = 20
+            state.address = '珠海市'
         },
         ddd(state,payload){
             console.log(state.obj.hobby,payload);
@@ -35,8 +35,10 @@ const store:IStoreOptions<IMyStore> = {
         change(state){
             console.log(12345);
             
-            state.obj.hobby = 'sleep'
-            state.obj.phone = 11111111111
+            // state.obj.hobby = 'sleep'
+            // state.obj.phone = 11111111111
+            state.obj.friend.aaa = 'aaac'
+            
         },
         change2(state,payload){
             state.obj2.aaa = payload?.length ? payload[0] : 'root'

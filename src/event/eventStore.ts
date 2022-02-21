@@ -1,4 +1,4 @@
-import {IStoreOptions,IkeyType,IEventFn,IResultObj} from '../types/index'
+import {IStoreOptions,IkeyType,IEventFn,IResultObj} from '../../types/index'
 import HREventBus from './eventBus'
 
 class HREventStore<T extends IkeyType> {
@@ -19,6 +19,7 @@ class HREventStore<T extends IkeyType> {
         this.actions = optinos.actions
         this.event = new HREventBus()
         this.state = this._observe(optinos.state)
+        
         if(Object.keys(optinos.modules ?? []).length === 0) return
         this.modules = optinos.modules
 
@@ -31,7 +32,7 @@ class HREventStore<T extends IkeyType> {
             this.modules[module] = new HREventStore(this.modules[module])
         }
         this.state.modules = this.modules
-        console.log(this);
+        
         
     }
 
@@ -75,9 +76,13 @@ class HREventStore<T extends IkeyType> {
     private _deepAgent(proxyObj:IResultObj){  
         const proxyKey = Object.keys(proxyObj)
         if(proxyKey.length === 0) throw new Error('传入需要代理的对象为空')
-        let rootKey = ''
-        this._nextAgent(proxyObj,rootKey)
+        
+        for(const item of Object.keys(proxyObj)){            
+            if(typeof proxyObj[item] === 'object') this._nextAgent(proxyObj,item,proxyObj)
+        }
 
+        // let rootKey = ''
+        // this._nextAgent(proxyObj,rootKey)
         return proxyObj
     }
 
@@ -89,14 +94,13 @@ class HREventStore<T extends IkeyType> {
 
         这里采用了深度优先算法，先对对每一层的第一个元素做代理，代理完成之后直接递归到下一层去代理
     */
-    private _nextAgent(proxyObj:IResultObj,rootKey:string){
+    private _nextAgent(proxyObj:IResultObj,rootKey:string,rootObj:IResultObj){
         const proxyKey = Object.keys(proxyObj)
         if(proxyKey.length === 0) return
         for(const item of proxyKey){
             if(typeof proxyObj[item] === 'object'){
-                rootKey = item
-                proxyObj[item] = this._proxy(proxyObj[item],rootKey)
-                this._nextAgent(proxyObj[item],rootKey)
+                this._nextAgent(proxyObj[item],rootKey,rootObj)  
+                proxyObj[item] = this._proxy(proxyObj,item,rootKey,rootObj)
             }
         }
     }
@@ -105,16 +109,17 @@ class HREventStore<T extends IkeyType> {
         _proxy方法：内部代理方法，在内部递归方法中会调用这个方法，这里的实现思路和前面的代理方法是一样的，只不过这里
         是做深度监听的
     */
-    private _proxy(proxyObj:IResultObj,rootKey:string){
+    private _proxy(proxyObj:IResultObj,key:string,rootKey:string,rootObj:IResultObj){
         const _this = this
-        return new Proxy(proxyObj,{
+        
+        return new Proxy(proxyObj[key],{
             get:(target,key)=>{                
                 return target[key as string]
             },
-            set:(target,key,newValue)=>{                 
+            set:(target,key,newValue)=>{     
                 if(target[key as string] === newValue) return true                
-                target[key as string] = newValue                             
-                _this.event.emit<T['state']>(rootKey as string,target,true)
+                target[key as string] = newValue    
+                _this.event.emit<T['state']>(rootKey as string,rootObj[rootKey],true)
                 return true
             }
         })
@@ -140,9 +145,9 @@ class HREventStore<T extends IkeyType> {
     public onState(stateKey:keyof T['state'] | 'modules' | string[],stateCallBack:IEventFn){                    
         if(typeof stateKey === 'string' && stateKey !== ''){            
             if(stateKey === 'modules' && this.state.modules){
-                const res:IResultObj = {}
+                const res:IResultObj = {modules:{}}
                 for(const itemKey of Object.keys(this.state.modules)){
-                    res[itemKey] = this.state.modules[itemKey]
+                    res.modules[itemKey] = this.state.modules[itemKey]
                     this.modules![itemKey].event.on(itemKey,stateCallBack)                
                 }
                 stateCallBack.apply(this.state,[res])
@@ -150,14 +155,14 @@ class HREventStore<T extends IkeyType> {
             } else if(Object.keys(this.state).indexOf(stateKey as string) === -1) throw new Error('输入的key不在state中')
             this.event.on(stateKey as string,stateCallBack)            
             const value = this.state[stateKey as keyof T['state']]                    
-            stateCallBack.apply(this.state,[value]) 
+            stateCallBack.apply(this.state,[{[stateKey]:value}]) 
              
         } else if(typeof stateKey === 'object' && stateKey.length > 0){
             const theKey = Object.keys(this.state)
             const res:IResultObj = {}
             for(const itemKey of stateKey){
                 if(theKey.indexOf(itemKey) === -1) throw new Error(`输入的key为 ${itemKey} 不在state中`)
-                res[itemKey] = this.state[itemKey]
+                res[itemKey] = this.state[itemKey]    
             }
             this.event.on(stateKey,stateCallBack)
             stateCallBack.apply(this.state,[res])
@@ -202,7 +207,7 @@ class HREventStore<T extends IkeyType> {
         if(!this.actions) return
         if(Object.keys(this.actions).indexOf(actionName) === -1) throw new Error('输入的方法不在actions中')
         const actionFn = this.actions[actionName]
-
+    
         actionFn.apply(this,[this.state,arg])
     }
 }

@@ -1,8 +1,11 @@
 {
     "compilerOptions": {
         "strict": true,
+        "target": "ES6",
         "esModuleInterop":true,
         "module": "ESNext",
+        "moduleResolution": "node",
+        "outDir": "dist"
         // "suppressImplicitAnyIndexErrors":true,
     }
 }

@@ -1,4 +1,4 @@
-import {IStoreOptions} from '../types/index'
+import {IStoreOptions} from '../../types/index'
 import {IMyStore2} from './types/storeType2'
 
 const Mystore2:IStoreOptions<IMyStore2>= {
