@@ -3,7 +3,7 @@
 ## 功能简介
 
 ```
-此项目正在开发中，但是已经实现了基本的数据响应式、事件派发、state深层代理、modules模块化等
+此项目正在开发中，主要用于状态管理，已经实现了基本的数据响应式、事件派发、state深层代理、modules模块化等
 ```
 
 # 安装使用
@@ -24,7 +24,7 @@ store的基本格式参照了vuex的写法，目前只有三个核心：state、
 
 其中actions的方法会接收到两个参数  ：state,payload
 
-state : 当前store的存储的state（如果使用了modules，那么store就是当前模块的state）
+state : 当前store的存储的state（如果使用了modules，那么store就是当前模块的state，后面会讲）
 
 payload : 外部调用actions方法时，传入的参数，payload以数组的形式接收
 
@@ -34,6 +34,8 @@ store.js 事例如下:
 
 ```js
 import Storebox from 'storebox'
+import store2 from './store2'
+import store3 from './store2'
 
 const store = {
     state:{
@@ -192,7 +194,7 @@ setState("name","CoderLLLL")
 
 #### offState
 
-取消监听，一般作用于组件销毁、离开的时候
+取消监听，一般作用于组件销毁、离开的时候，这个监听函数其实是不需要执行的，那么就意味着当监听的key发生变化的时候，这个组件页面其实已经不需要监听了，但是函数依旧执行，这样会造成一些不必要的性能浪费，那么建议在每次组件销毁时，取消监听
 
 offState("key",({key:value})=>{...})
 
@@ -280,5 +282,74 @@ actions:{
 
 
 
---------写不动了，文档持续更新
+### 模块化modules
+
+模块化借鉴了单一状态树的结构，当我们导入了模块并且写入到modules的时候，将会占用根store的state的一个key，key名为modules，modules存放着一个个已经经过storebox实例化的store，如果用户占用了modules字段，那么将会报错
+
+实例化后根store的state中的modules的格式
+
+``` js
+state:{
+	...,
+    modules:{
+        [modulesName]:EventStore,
+        [modulesName]:EventStore,
+        ...
+	}
+}
+```
+
+所以监听到的modules取出来之后，可以直接onState模块里面的state数据，或者直接dispatch派发事件到当前modules的actions里面的函数，也可以再添加modules
+
+
+
+#### 导入模块
+
+回顾前面的store2.js和store3.js文件，这里将写好的store导入到根store的modules中
+
+``` js
+import Storebox from 'storebox'
+import store2 from './store2'
+import store3 from './store2'
+
+const store = {
+	state:{},
+    actions:{},
+    modules:{
+        store2,
+        store3
+	}
+}
+
+export default new Storebox(store)
+```
+
+注意：导出根store的时候不要忘记new Storebox(store)实例化store，不然拿到只是一个普通的对象
+
+
+
+那么在组件中要获取模块，直接在onState中监听模块即可获得,也是通过key:value的形式获得，有多少个模块，那么就会有多少个键值对，其中key就是写在state中modules里面的key
+
+``` js
+import store from "../store";
+
+const MyModules = ''
+
+store.onState('modules',(modules)=>{
+	MyModules = modules
+})
+
+MyModules.store2.onState('name',({name})=>{
+    console.log(name)  //store2
+})
+MyModules.store2.dispatch('storeChange')	//store2的age被改为10,依赖于store2的age所有函数将会被重新执行
+
+MyModules.store3.onState('name',({name})=>{
+    console.log(name)  //state3
+})
+```
+
+
+
+--------欢迎大家遇到bug提交到lssues，文档持续更新
 
