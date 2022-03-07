@@ -1,8 +1,8 @@
 {
   "name": "storebox",
-  "version": "1.2.5-3",
+  "version": "1.2.5-7",
   "description": "一个可以应用于小程序的微型状态管理,也可以用在vue,react",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -35,7 +35,8 @@
   },
   "files": [
     "dist",
-    "types"
+    "types",
+    "src"
   ],
   "repository": {
     "type": "git",
