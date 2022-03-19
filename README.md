@@ -3,7 +3,7 @@
 ## 功能简介
 
 ```
-此项目正在开发中，主要用于状态管理，已经实现了基本的数据响应式、事件派发、state深层代理、modules模块化等
+主要用于状态管理，已经实现了基本的数据响应式、事件派发、state深层代理、modules模块化等
 ```
 
 # 安装使用
@@ -29,7 +29,7 @@ store.js 事例如下:
 ```js
 import Storebox from "storebox";
 import store2 from "./store2";
-import store3 from "./store2";
+import store3 from "./store3";
 
 const store = {
   state: {
